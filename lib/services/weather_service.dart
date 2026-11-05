@@ -13,22 +13,12 @@ class WeatherException implements Exception {
   String toString() => message;
 }
 
-/// Talks to OpenWeatherMap using dart:io only, so pubspec.yaml
-/// does not need any extra packages.
+/// Talks to the Node.js backend (see /backend). The backend returns the
+/// OpenWeatherMap JSON unchanged, so the models work as before.
 class WeatherService {
   Future<Map<String, dynamic>> _get(String path, String city) async {
-    if (!AppConfig.hasApiKey) {
-      throw const WeatherException(
-        'Add your OpenWeatherMap API key in lib/config.dart',
-      );
-    }
-
     final uri = Uri.parse('${AppConfig.baseUrl}/$path').replace(
-      queryParameters: {
-        'q': city,
-        'appid': AppConfig.weatherApiKey,
-        'units': 'metric',
-      },
+      queryParameters: {'city': city},
     );
 
     final client = HttpClient()
@@ -37,34 +27,34 @@ class WeatherService {
     try {
       final request = await client.getUrl(uri);
       final response = await request.close().timeout(
-            const Duration(seconds: 15),
+            const Duration(seconds: 20),
           );
       final body = await response.transform(utf8.decoder).join();
 
-      switch (response.statusCode) {
-        case 200:
-          return jsonDecode(body) as Map<String, dynamic>;
-        case 401:
-          throw const WeatherException(
-            'API key rejected. New keys can take up to 2 hours to activate.',
-          );
-        case 404:
-          throw WeatherException('Couldn\'t find "$city". Check the spelling.');
-        case 429:
-          throw const WeatherException(
-            'Too many requests. Wait a minute and try again.',
-          );
-        default:
-          throw WeatherException(
-            'Weather service error (${response.statusCode}).',
-          );
+      if (response.statusCode == 200) {
+        return jsonDecode(body) as Map<String, dynamic>;
       }
+
+      // The backend sends {"error": "..."} with a readable message.
+      String? serverMessage;
+      try {
+        serverMessage = (jsonDecode(body) as Map<String, dynamic>)['error']
+            as String?;
+      } catch (_) {}
+
+      throw WeatherException(
+        serverMessage ?? 'Server error (${response.statusCode}).',
+      );
     } on SocketException {
-      throw const WeatherException('No internet connection.');
+      throw const WeatherException(
+        'Can\'t reach the server. Is the backend running and is baseUrl in config.dart correct?',
+      );
     } on TimeoutException {
       throw const WeatherException('The request timed out. Try again.');
     } on FormatException {
       throw const WeatherException('Unexpected response from the server.');
+    } on HandshakeException {
+      throw const WeatherException('Secure connection failed.');
     } finally {
       client.close();
     }

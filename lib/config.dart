@@ -1,11 +1,11 @@
-/// App-wide configuration.
-///
-/// Get a free key at https://openweathermap.org/api and paste it below.
-/// New keys can take up to ~2 hours to activate.
+/// The OpenWeatherMap key now lives on the Node.js backend (backend/server.js),
+/// not in the app.
 class AppConfig {
-  static const String weatherApiKey = 'YOUR_API_KEY_HERE';
-
-  static const String baseUrl = 'https://api.openweathermap.org/data/2.5';
+  /// Where the backend is running:
+  ///  - Android emulator:        http://10.0.2.2:3000/api
+  ///  - Real phone (same Wi-Fi): http://<your-PC-IP>:3000/api 
+  ///  - Chrome / Windows app:    http://localhost:3000/api
+  static const String baseUrl = 'http://10.0.2.2:3000/api';
 
   static const String defaultCity = 'Pune';
 
@@ -17,7 +17,4 @@ class AppConfig {
     'New York',
     'Tokyo',
   ];
-
-  static bool get hasApiKey =>
-      weatherApiKey.isNotEmpty && !weatherApiKey.startsWith('PASTE_');
 }
