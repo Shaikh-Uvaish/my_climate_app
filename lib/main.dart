@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'screens/home_screen.dart';
+import 'screens/splash_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
+    statusBarColor: Color.fromARGB(0, 175, 118, 118),
     statusBarIconBrightness: Brightness.light,
     systemNavigationBarColor: Colors.transparent,
   ));
@@ -27,7 +27,7 @@ class MyClimateApp extends StatelessWidget {
         colorSchemeSeed: const Color(0xFF42A5F5),
         scaffoldBackgroundColor: Colors.transparent,
       ),
-      home: const HomeScreen(),
+      home: const SplashScreen(),
     );
   }
 }
